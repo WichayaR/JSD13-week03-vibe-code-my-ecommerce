@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สั่งซื้อสินค้า | ปันอ่าน</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- User Authentication Status Bar -->
+  <div class="user-status-bar" id="userStatusBar" style="display: none;">
+    <div class="user-status-info">
+      <i class="fa-solid fa-circle-user"></i> เข้าสู่ระบบโดย: <strong id="statusUserName">...</strong> (<span id="statusUserRole">...</span>)
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">
+      <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </button>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/" class="logo">
+        <i class="fa-solid fa-book-open-reader"></i> ปันอ่าน
+      </a>
+      
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/">หน้าแรก</a></li>
+          <li><a href="/admin.html" id="adminNavLink" style="display: none;">แผงควบคุมแอดมิน</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="สลับธีม มืด/สว่าง">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="checkout-layout">
+      <!-- Checkout Form -->
+      <div>
+        <div class="checkout-card">
+          <h2><i class="fa-solid fa-truck-fast"></i> ข้อมูลการจัดส่งและการชำระเงิน</h2>
+          <form id="checkoutForm" onsubmit="handlePlaceOrder(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label for="firstName">ชื่อจริง</label>
+                <input type="text" id="firstName" class="form-input" required readonly>
+              </div>
+              <div class="form-group">
+                <label for="lastName">นามสกุล</label>
+                <input type="text" id="lastName" class="form-input" required readonly>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">อีเมล</label>
+              <input type="email" id="email" class="form-input" required readonly>
+            </div>
+
+            <div class="form-group">
+              <label for="tel">เบอร์โทรศัพท์</label>
+              <input type="tel" id="tel" class="form-input" required readonly>
+            </div>
+
+            <div class="form-group">
+              <label for="shippingAddressSelect">เลือกที่อยู่สำหรับจัดส่ง (ดึงจากฐานข้อมูล 1:N)</label>
+              <select id="shippingAddressSelect" class="form-input" style="height: auto; padding: 0.75rem 1rem;" onchange="updateSelectedAddressText()">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label>รายละเอียดที่อยู่สำหรับจัดส่ง</label>
+              <textarea id="shippingAddressDetail" class="form-input" rows="2" readonly style="background-color: var(--primary-light); opacity: 0.95;"></textarea>
+            </div>
+
+            <div style="margin: 1.5rem 0 0.5rem; font-weight: 600; color: var(--primary);">
+              <i class="fa-solid fa-wallet"></i> ช่องทางการชำระเงิน
+            </div>
+            
+            <div class="payment-options">
+              <div class="payment-option-card active" onclick="selectPaymentMethod('PromptPay')">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>PromptPay (QR)</span>
+              </div>
+              <div class="payment-option-card" style="opacity: 0.5; cursor: not-allowed;" title="ไม่เปิดบริการสำหรับการจำลอง">
+                <i class="fa-solid fa-credit-card"></i>
+                <span>Credit/Debit</span>
+              </div>
+            </div>
+
+            <!-- Simulated QR Code Section -->
+            <div class="promptpay-simulate-container" id="promptPayContainer">
+              <p><strong>ชำระเงินผ่าน PromptPay</strong></p>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">แสกน QR Code ด้านล่างเพื่อชำระเงินจำลอง</p>
+              
+              <div class="qr-code-box">
+                <!-- Custom Canvas or Generated QR Code simulation -->
+                <div id="simulatedQR" style="width: 160px; height: 160px; background: #fff; border: 4px solid #1c355e; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                  <div style="background-color: #1c355e; color: white; width: 100%; text-align: center; font-size: 0.7rem; font-weight: bold; padding: 2px 0; position: absolute; top: 0;">Prompt Pay</div>
+                  <!-- Abstract QR lines -->
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); width: 120px; height: 120px; gap: 4px; margin-top: 15px;">
+                    <div style="border: 6px solid #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="border: 6px solid #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="border: 2px solid #000;"></div>
+                    <div style="border: 2px solid #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="border: 2px solid #000;"></div>
+                    <div style="border: 2px solid #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="border: 6px solid #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="background-color: #000;"></div>
+                    <div style="border: 6px solid #000;"></div>
+                  </div>
+                  <div style="position: absolute; width: 30px; height: 30px; background-color: white; border: 2px solid #1c355e; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-money-bill-wave" style="color: #16a085; font-size: 0.9rem;"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <p style="font-size: 1.1rem; font-weight: bold;">จำนวนเงินที่ต้องชำระ: <span id="promptPayAmount" style="color: var(--primary);">0</span> ฿</p>
+                <div style="margin-top: 1rem;">
+                  <button type="button" class="btn btn-secondary" onclick="simulatePaymentApproval()"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> จำลองสแกนจ่ายเงินเสร็จสิ้น</button>
+                </div>
+                <p id="paymentStatusText" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> รอชำระเงิน...</p>
+              </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+              <button type="submit" id="submitOrderBtn" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1rem;" disabled>ยืนยันคำสั่งซื้อ (ชำระเงินก่อน)</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div>
+        <div class="checkout-card" style="position: sticky; top: 100px;">
+          <h2><i class="fa-solid fa-receipt"></i> รายการสินค้า</h2>
+          <div id="checkoutSummaryItems" style="max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem;">
+            <!-- Summarized items loaded here -->
+          </div>
+          
+          <div class="order-summary-item">
+            <span>จำนวนสินค้าทั้งหมด</span>
+            <span id="checkoutSummaryQty">0 ชิ้น</span>
+          </div>
+          <div class="order-summary-item">
+            <span>ค่าจัดส่ง</span>
+            <span style="color: var(--success); font-weight: 600;">ฟรีค่าบริการ</span>
+          </div>
+          <div class="order-summary-total">
+            <span>ยอดสุทธิ</span>
+            <span id="checkoutSummaryTotal">0 ฿</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Checkout Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-container" style="max-width: 450px; text-align: center; padding: 2rem;">
+      <div style="width: 80px; height: 80px; background-color: #e8f8f5; color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 1.5rem;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2 style="color: var(--success); font-family: var(--font-accent); margin-bottom: 0.8rem;">ทำรายการสั่งซื้อสำเร็จ!</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;">ออเดอร์ของคุณได้รับการสร้างขึ้นแล้วในฐานข้อมูล MongoDB เรียบร้อย</p>
+      <div style="background-color: var(--primary-light); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; text-align: left; font-size: 0.9rem;">
+        <p><strong>Order ID:</strong> <span id="successOrderId" style="font-family: monospace;">-</span></p>
+        <p><strong>ผู้สั่งซื้อ:</strong> <span id="successCustomerName">-</span></p>
+        <p><strong>จำนวนเงิน:</strong> <span id="successAmount">-</span></p>
+        <p><strong>สถานะ:</strong> <span class="status-indicator paid" style="font-size: 0.75rem;">Paid</span></p>
+      </div>
+      <div>
+        <a href="/" class="btn btn-primary" style="display: block;">กลับไปช้อปต่อ</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer>
+    <div class="footer-container">
+      <a href="/" class="footer-logo"><i class="fa-solid fa-book-open-reader"></i> ปันอ่าน</a>
+      <p class="footer-text">© 2026 ปันอ่าน Bookstore Project. สร้างขึ้นเพื่อประกอบการเรียนรู้ MongoDB E-Commerce.</p>
+    </div>
+  </footer>
+
+  <script src="/js/checkout.js"></script>
+</body>
+</html>

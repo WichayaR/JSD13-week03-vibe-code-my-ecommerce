@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบแผงควบคุมแอดมิน | ปันอ่าน</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- User Authentication Status Bar -->
+  <div class="user-status-bar" id="userStatusBar" style="display: none;">
+    <div class="user-status-info">
+      <i class="fa-solid fa-circle-user"></i> เข้าสู่ระบบโดย: <strong id="statusUserName">...</strong> (<span id="statusUserRole">...</span>)
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">
+      <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </button>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/" class="logo">
+        <i class="fa-solid fa-book-open-reader"></i> ปันอ่าน <span style="font-size: 1rem; font-family: var(--font-main); opacity: 0.7; margin-left: 0.5rem;">[แอดมิน]</span>
+      </a>
+      
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/">หน้าร้านค้า</a></li>
+          <li><a href="/admin.html" class="active">แผงควบคุมแอดมิน</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="สลับธีม มืด/สว่าง">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="admin-layout">
+      <!-- Admin Sidebar Menu -->
+      <aside class="admin-sidebar">
+        <ul class="admin-menu">
+          <li>
+            <div class="admin-menu-item active" id="menu-overview" onclick="switchAdminSection('overview')">
+              <i class="fa-solid fa-chart-line"></i> สรุปภาพรวม
+            </div>
+          </li>
+          <li>
+            <div class="admin-menu-item" id="menu-books" onclick="switchAdminSection('books')">
+              <i class="fa-solid fa-book"></i> จัดการข้อมูลหนังสือ
+            </div>
+          </li>
+          <li>
+            <div class="admin-menu-item" id="menu-orders" onclick="switchAdminSection('orders')">
+              <i class="fa-solid fa-receipt"></i> จัดการคำสั่งซื้อ
+            </div>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Admin Content Sections -->
+      <div style="flex: 1; width: 100%;">
+        
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="section-overview" class="admin-content-section active">
+          <h2 style="margin-bottom: 1.5rem; font-family: var(--font-accent); color: var(--primary);">สรุปผลการดำเนินงานหลังบ้าน</h2>
+          
+          <div class="admin-stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon sales"><i class="fa-solid fa-baht-sign"></i></div>
+              <div class="stat-details">
+                <h4>ยอดขายรวม</h4>
+                <p id="statTotalSales">0 ฿</p>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon orders"><i class="fa-solid fa-cart-shopping"></i></div>
+              <div class="stat-details">
+                <h4>คำสั่งซื้อทั้งหมด</h4>
+                <p id="statTotalOrders">0</p>
+              </div>
+            </div>
+            
+            <div class="stat-card">
+              <div class="stat-icon books"><i class="fa-solid fa-book"></i></div>
+              <div class="stat-details">
+                <h4>จำนวนหนังสือในคลัง</h4>
+                <p id="statTotalBooks">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkout-card" style="padding: 1.5rem;">
+            <h3><i class="fa-solid fa-history" style="color: var(--primary);"></i> ออเดอร์ล่าสุด</h3>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ออเดอร์ ID</th>
+                    <th>ลูกค้า</th>
+                    <th>วันที่สั่งซื้อ</th>
+                    <th>ราคารวม</th>
+                    <th>สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody id="recentOrdersTableBody">
+                  <!-- Dynamically filled -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: BOOK CRUD -->
+        <section id="section-books" class="admin-content-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-family: var(--font-accent); color: var(--primary);">จัดการข้อมูลหนังสือในร้าน</h2>
+            <button class="btn btn-primary" onclick="openBookFormModal()"><i class="fa-solid fa-plus"></i> เพิ่มหนังสือใหม่</button>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>รหัสหนังสือ</th>
+                  <th>ปก</th>
+                  <th>ชื่อหนังสือ / ซีรีส์</th>
+                  <th>นักเขียน</th>
+                  <th>รูปแบบ</th>
+                  <th>ราคา</th>
+                  <th>สินค้าคงคลัง</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="adminBooksTableBody">
+                <!-- Dynamically filled -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECTION 3: ORDER MANAGER -->
+        <section id="section-orders" class="admin-content-section">
+          <h2 style="margin-bottom: 1.5rem; font-family: var(--font-accent); color: var(--primary);">จัดการและติดตามคำสั่งซื้อ</h2>
+          
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ออเดอร์ ID</th>
+                  <th>วันที่สั่งซื้อ</th>
+                  <th>รายละเอียดลูกค้า</th>
+                  <th>รายการสินค้า</th>
+                  <th>ยอดเงินสุทธิ</th>
+                  <th>สถานะการชำระ</th>
+                  <th>เปลี่ยนสถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="adminOrdersTableBody">
+                <!-- Dynamically filled -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Book Form Modal (Create & Update) -->
+  <div class="modal-overlay" id="bookFormModal" onclick="closeBookFormModal()">
+    <div class="modal-container" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="bookModalTitle">เพิ่มข้อมูลหนังสือใหม่</h3>
+        <button class="close-modal" onclick="closeBookFormModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="bookForm" onsubmit="handleSaveBook(event)">
+          <input type="hidden" id="formSubmitType" value="create"> <!-- 'create' or 'update' -->
+          
+          <div class="form-group">
+            <label for="bookIdField">รหัสหนังสือ (Book ID)</label>
+            <input type="text" id="bookIdField" class="form-input" placeholder="เช่น book0011" required>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">*เมื่อสร้างหนังสือแล้ว จะไม่สามารถเปลี่ยนรหัสนี้ได้</p>
+          </div>
+
+          <div class="form-group">
+            <label for="bookTitleField">ชื่อหนังสือ</label>
+            <input type="text" id="bookTitleField" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label for="bookAuthorField">ชื่อนักเขียน</label>
+            <input type="text" id="bookAuthorField" class="form-input" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="bookFormatField">รูปแบบหนังสือ</label>
+              <select id="bookFormatField" class="form-input" style="height: auto; padding: 0.75rem 1rem;">
+                <option value="Paperback">Paperback (รูปเล่ม)</option>
+                <option value="Zine">Zines (หนังสือทำมือ)</option>
+                <option value="E-Book">E-Book (ไฟล์อิเล็กทรอนิกส์)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bookPriceField">ราคา (บาท)</label>
+              <input type="number" id="bookPriceField" class="form-input" min="0" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="bookSerieField">ชื่อชุด / ซีรีส์</label>
+              <input type="text" id="bookSerieField" class="form-input" placeholder="เช่น เรื่องเล่าเปลี่ยนชีวิต (ถ้ามี)">
+            </div>
+            <div class="form-group">
+              <label for="bookVolumeField">เล่ม / ตอน</label>
+              <input type="text" id="bookVolumeField" class="form-input" placeholder="เช่น เล่ม 1, ตอนพิเศษ (ถ้ามี)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="bookStockField">สินค้าคงคลัง (Stock)</label>
+            <input type="number" id="bookStockField" class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="bookCoverUrlField">รูปหน้าปก (Cover URL / Path)</label>
+            <select id="bookCoverUrlField" class="form-input" style="height: auto; padding: 0.75rem 1rem;">
+              <option value="/img/covers/cover_mind.png">พัฒนาตัวเอง (Mind / Development)</option>
+              <option value="/img/covers/cover_fiction.png">เรื่องเล่าแสนอบอุ่น (Cozy Fiction)</option>
+              <option value="/img/covers/cover_peace.png">จิตวิทยาการปล่อยวาง (Peace / Calm)</option>
+              <option value="/img/covers/cover_coffee.png">บันทึกสุนทรียภาพกาแฟ (Coffee / Life)</option>
+              <option value="/img/covers/cover_poetry.png">บทกวีร่วมสมัย (Poetry / Evening)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="bookSynopsisField">เรื่องย่อ (Synopsis)</label>
+            <textarea id="bookSynopsisField" class="form-input" rows="4" style="resize: vertical;" required></textarea>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+            <button type="button" class="btn btn-secondary" onclick="closeBookFormModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer>
+    <div class="footer-container">
+      <a href="/" class="footer-logo"><i class="fa-solid fa-book-open-reader"></i> ปันอ่าน</a>
+      <p class="footer-text">© 2026 ปันอ่าน Bookstore Project. สร้างขึ้นเพื่อประกอบการเรียนรู้ MongoDB E-Commerce.</p>
+    </div>
+  </footer>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

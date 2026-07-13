@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ปันอ่าน | Pan-An Books - ร้านหนังสืออินดี้และ Zines</title>
+  <meta name="description" content="พื้นที่พักใจของนักอ่าน รวบรวมหนังสือทำมือและ Zines ส่งตรงถึงบ้านคุณ">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- User Authentication Status Bar -->
+  <div class="user-status-bar" id="userStatusBar" style="display: none;">
+    <div class="user-status-info">
+      <i class="fa-solid fa-circle-user"></i> เข้าสู่ระบบโดย: <strong id="statusUserName">...</strong> (<span id="statusUserRole">...</span>)
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">
+      <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+    </button>
+  </div>
+
+  <header>
+    <div class="nav-container">
+      <a href="/" class="logo">
+        <i class="fa-solid fa-book-open-reader"></i> ปันอ่าน
+      </a>
+      
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/" class="active">หน้าแรก</a></li>
+          <li><a href="/admin.html" id="adminNavLink" style="display: none;">แผงควบคุมแอดมิน</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="สลับธีม มืด/สว่าง">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button class="cart-btn" onclick="toggleCartPanel()" title="ดูตะกร้าสินค้า">
+          <i class="fa-solid fa-shopping-bag"></i>
+          <span class="cart-badge" id="cartBadgeCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Banner -->
+    <section class="hero-section">
+      <h1>ยินดีต้อนรับสู่ "ปันอ่าน"</h1>
+      <p>พื้นที่รวบรวมผลงานทำมือ Zines และสิ่งพิมพ์อิสระจากนักเขียนอินดี้ ท่ามกลางบรรยากาศแสนอบอุ่นสำหรับคนรักการอ่านตัวจริง</p>
+    </section>
+
+    <!-- Recommendations Section -->
+    <section id="recommendationsSection" style="margin-bottom: 2.5rem; display: none; padding: 1.5rem; background-color: var(--primary-light); border-radius: var(--radius-md); border: 1px solid var(--border);">
+      <h2 style="font-family: var(--font-accent); color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-wand-magic-sparkles"></i> ออกแบบแนะนำเพื่อคุณโดยเฉพาะ</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">วิเคราะห์หนังสือจากหมวดหมู่ที่คุณชื่นชอบ: <span id="prefCategoryBadges" style="font-weight: 600; color: var(--primary);"></span></p>
+      <div class="books-grid" id="recommendedBooksGrid">
+        <!-- Loaded dynamically -->
+      </div>
+    </section>
+
+    <!-- Controls Row (Search and filters) -->
+    <div class="controls-row">
+      <div class="search-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="ค้นหาชื่อหนังสือ นักเขียน หรือซีรีส์..." oninput="handleSearch()">
+      </div>
+      <div class="filter-wrapper">
+        <button class="filter-btn active" onclick="setFormatFilter('', this)">ทั้งหมด</button>
+        <button class="filter-btn" onclick="setFormatFilter('Paperback', this)">Paperback</button>
+        <button class="filter-btn" onclick="setFormatFilter('Zine', this)">Zines</button>
+      </div>
+    </div>
+
+    <!-- Books List -->
+    <div class="books-grid" id="booksGrid">
+      <!-- Loaded dynamically by JavaScript -->
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary);"></i>
+        <p style="margin-top: 1rem;">กำลังโหลดชั้นหนังสือสุดอบอุ่น...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Slide-out Cart Panel -->
+  <div class="cart-panel-overlay" id="cartOverlay" onclick="toggleCartPanel()">
+    <div class="cart-panel" onclick="event.stopPropagation()">
+      <div class="cart-header">
+        <h3><i class="fa-solid fa-cart-shopping"></i> ตะกร้าของฉัน</h3>
+        <button class="close-modal" onclick="toggleCartPanel()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="cart-items-container" id="cartItemsContainer">
+        <!-- Cart Items loaded dynamically -->
+      </div>
+      
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span>ยอดรวมทั้งสิ้น:</span>
+          <span class="cart-total-price" id="cartTotalPrice">0 ฿</span>
+        </div>
+        <a href="/checkout.html" class="btn btn-primary checkout-btn" id="proceedCheckoutBtn">ดำเนินการสั่งซื้อ <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Synopsis & Details Modal -->
+  <div class="modal-overlay" id="synopsisModal" onclick="closeBookModal()">
+    <div class="modal-container" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>รายละเอียดหนังสือ</h3>
+        <button class="close-modal" onclick="closeBookModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer>
+    <div class="footer-container">
+      <a href="/" class="footer-logo"><i class="fa-solid fa-book-open-reader"></i> ปันอ่าน</a>
+      <p class="footer-text">© 2026 ปันอ่าน Bookstore Project. สร้างขึ้นเพื่อประกอบการเรียนรู้ MongoDB E-Commerce.</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

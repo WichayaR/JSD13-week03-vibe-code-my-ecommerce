@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เข้าสู่ระบบ | ปันอ่าน (Pan-An Books)</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-page-body">
+
+  <div class="login-card">
+    <div class="login-logo">
+      <i class="fa-solid fa-book-open-reader"></i> ปันอ่าน
+    </div>
+    <div class="login-subtitle">ระบบเข้าสู่ระบบร้านหนังสือและ Zines</div>
+
+    <div class="login-error-alert" id="errorAlert">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span id="errorMessage">อีเมลหรือรหัสผ่านไม่ถูกต้อง</span>
+    </div>
+
+    <form class="login-form" id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="email">อีเมลผู้ใช้งาน (Email)</label>
+        <input type="email" id="email" required placeholder="example@email.com">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">รหัสผ่าน (Password)</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn">
+        <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+      </button>
+    </form>
+
+    <!-- Quick simulation login helper -->
+    <div class="quick-login-box">
+      <h4><i class="fa-solid fa-user-gear"></i> ทางลัดผู้ใช้จำลอง (Quick Login)</h4>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+        เลือกรายชื่อเพื่อกรอกข้อมูลผู้ใช้จำลองและทดสอบได้ทันที:
+      </p>
+      <select id="quickUserSelector" onchange="autoFillUser()">
+        <option value="">-- เลือกบัญชีผู้ใช้จำลอง --</option>
+        <option value="somchai@fakemail.com">สมชาย รักการอ่าน (Customer)</option>
+        <option value="wandee@fakemail.com">วันดี เรียนรู้ดี (Customer)</option>
+        <option value="sombat@fakemail.com">สมบัติ สร้างสรรค์ (Customer)</option>
+        <option value="naree@fakemail.com">นารี ใจดี (Customer)</option>
+        <option value="preecha@fakemail.com">ปรีชา รักเรียน (Customer)</option>
+        <option value="wipawan@fakemail.com">วิภาวรรณ รวยรื่น (Customer)</option>
+        <option value="aphisit@fakemail.com">อภิสิทธิ์ ก้าวไกล (Customer)</option>
+        <option value="surasak@fakemail.com">สุรศักดิ์ สู้ชีวิต (Customer)</option>
+        <option value="nattaphol@fakemail.com">ณัฐพล สายเทค (Customer)</option>
+        <option value="somying@fakemail.com">สมหญิง ชอบสะสม (Admin)</option>
+      </select>
+    </div>
+  </div>
+
+  <script>
+    // Theme setup
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Auto fill selector helper
+    function autoFillUser() {
+      const select = document.getElementById('quickUserSelector');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      
+      if (select.value) {
+        emailInput.value = select.value;
+        passwordInput.value = 'password123'; // Default seeded password
+      } else {
+        emailInput.value = '';
+        passwordInput.value = '';
+      }
+    }
+
+    // Handle Login API Request
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorAlert = document.getElementById('errorAlert');
+      const errorMessage = document.getElementById('errorMessage');
+      const loginBtn = document.getElementById('loginBtn');
+
+      errorAlert.style.display = 'none';
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> กำลังตรวจสอบสิทธิ์...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.ok ? await res.json() : null;
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'การเข้าสู่ระบบล้มเหลว');
+        }
+
+        // Success: save user state
+        localStorage.setItem('currentUser', JSON.stringify(data));
+        
+        // Redirect based on role
+        if (data.role === 'admin') {
+          window.location.href = '/admin.html';
+        } else {
+          window.location.href = '/';
+        }
+
+      } catch (error) {
+        errorMessage.textContent = error.message;
+        errorAlert.style.display = 'flex';
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ';
+      }
+    }
+  </script>
+</body>
+</html>
